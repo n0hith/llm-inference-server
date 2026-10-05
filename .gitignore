@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Virtual environments (engine venv + separate baselines venv for vLLM in Phase 7)
+.venv/
+.venv-*/
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+.hypothesis/
+.mypy_cache/
+
+# Profiler traces / large artifacts (small JSON/CSV/PNG results ARE committed)
+*.pt.trace.json
+*.prof
+benchmarks/results/**/*.trace.json
+
+# Model weights never go in git (they live in ~/.cache/huggingface)
+*.safetensors
+*.bin
+*.gguf
+
+# Secrets
+.env
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store

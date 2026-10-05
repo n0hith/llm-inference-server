@@ -1,0 +1,64 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "llm-inference-server"
+version = "0.0.1"
+description = "A from-scratch low-latency quantized LLM inference engine and OpenAI-compatible server."
+readme = "README.md"
+requires-python = ">=3.11"
+# Exact pins: these are the versions verified to work together on the dev machine
+# (WSL2 Ubuntu 24.04, RTX 4050 Laptop 6GB, driver CUDA 13.4). Exact pins matter here
+# because numerical parity tests can shift between torch/transformers releases.
+#
+# torch is installed from the PyTorch CUDA index (see `make install`), because PyPI
+# can't express "the cu128 build". torch pins its own matching `triton` (3.6.0), so we
+# deliberately do NOT pin triton separately -- a mismatched triton breaks torch.compile.
+dependencies = [
+    "torch==2.11.0",
+    "transformers==5.18.0",      # weights/tokenizer loading + correctness reference ONLY
+    "safetensors==0.8.0",
+    "huggingface_hub==1.33.0",
+    "tokenizers==0.23.2",
+    "sentencepiece==0.2.2",      # TinyLlama ships a sentencepiece tokenizer
+    "numpy==2.5.3",
+    "bitsandbytes==0.50.2",      # Phase 2: NF4 quantization
+    "datasets==5.1.0",           # Phase 2: WikiText-2 perplexity
+    "fastapi==0.142.2",          # Phase 5: server
+    "uvicorn[standard]==0.54.0",
+    "pydantic==2.13.5",
+    "httpx==0.28.1",             # async HTTP client for load tests
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==9.1.1",
+    "pytest-asyncio==1.4.0",
+    "hypothesis==6.168.4",       # property-based tests for the block allocator
+    "ruff==0.16.10",
+    "openai==3.24.0",            # server tests use the official client against localhost
+    "matplotlib==3.11.2",        # benchmark plots
+]
+
+[tool.setuptools.packages.find]
+include = ["engine*", "scheduler*", "server*", "kernels*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+markers = [
+    "gpu: needs a CUDA GPU (auto-skipped when none is available)",
+    "slow: downloads/loads a real model or runs for a long time (skipped by `make test-fast`)",
+]
+filterwarnings = [
+    # Emitted by third-party code importing torch.jit, not by us; keep our own warnings visible.
+    "ignore:`torch.jit.script_method` is deprecated:DeprecationWarning",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
