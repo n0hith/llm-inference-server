@@ -5,9 +5,10 @@ pass and KV cache, 4-bit quantization, a continuous-batching scheduler, a paged 
 with prefix sharing, and a fused int4 Triton kernel, all benchmarked honestly against
 vLLM and llama.cpp.
 
-> **Status:** Phase 0 (setup) complete. See [docs/PROGRESS.md](docs/PROGRESS.md) for the
-> phase-by-phase log. Results, the architecture diagram, and design notes get added as
-> each phase lands.
+> **Status:** Phase 1 complete: own Llama forward pass + KV cache, bit-identical to HF
+> transformers in fp32/fp16/bf16, decoding TinyLlama-1.1B at 71.6 tok/s (82% of the
+> memory-bandwidth roofline on an RTX 4050 Laptop). See [docs/PROGRESS.md](docs/PROGRESS.md)
+> for the phase-by-phase log and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for design notes.
 
 ## Hardware this was developed on
 
@@ -27,6 +28,9 @@ make install     # creates .venv, installs pinned deps (torch from the CUDA 12.8
 make env         # prints GPU / CUDA / library versions and runs GPU smoke tests
 make test-fast   # tests that need no GPU and no model download
 make test        # full suite
+
+# generate text with our engine (TinyLlama downloads on first use)
+.venv/bin/python scripts/generate.py --chat --prompt "Write a haiku about GPUs."
 ```
 
 ## Repository layout
